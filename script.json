@@ -1,0 +1,14 @@
+{
+    "name": "WildShapeManager",
+    "script": "WildShapeManager.js",
+    "version": "0.2.6",
+    "previousversions": [],
+    "description": "",
+    "authors": "Kyle Wilkins",
+    "roll20userid": "1008763",
+    "patreon": "",
+    "useroptions": [],
+    "dependencies": ["SpawnDefaultToken"],
+    "modifies": {},
+    "conflicts": []
+}
