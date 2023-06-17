@@ -1,6 +1,6 @@
+
 const WildShapeManager = (function() {
-    const scriptName = "WildShapeManager";
-    const version = '0.1.0';
+    var version = '1.0.0';
 
     const commands = [
         "!Set-As-Wild-Shape",
@@ -128,7 +128,7 @@ const WildShapeManager = (function() {
                     AllPlayerWildShapes[PlayerID][Character.id]['WildShapeBase'] = 1;
                 }
                 else{
-                    setAttrs(Character.id, {WildShape: 1})
+                    setAttrs(Character.id, {WildShapeBase: 1})
                     AllPlayerWildShapes[PlayerID][Character.id]['WildShapeBase'] = 1;
                 }
             }
@@ -164,7 +164,7 @@ const WildShapeManager = (function() {
                     AllPlayerWildShapes[PlayerID][Character.id]['WildShapeBase'] = 0;
                 }
                 else{
-                    setAttrs(Character.id, {WildShape: 0})
+                    setAttrs(Character.id, {WildShapeBase: 0})
                     AllPlayerWildShapes[PlayerID][Character.id]['WildShapeBase'] = 0;
                 }
             }
@@ -309,7 +309,7 @@ const WildShapeManager = (function() {
         
         var players=findObjs({_type:'player'});
         players.forEach(player => AddPlayerCharacters(player));
-        log(AllPlayerWildShapes);
+        //log(AllPlayerWildShapes);
         registerEventHandlers();
     });
 
