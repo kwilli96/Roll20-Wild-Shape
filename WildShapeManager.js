@@ -230,7 +230,7 @@ async function WildShape(PlayerID, SelectedCharacter){
 }
 
 
-const TestArea = (function() {
+const WildShapeManager = (function() {
     var version = '1.0.0';
 
     const commands = [
