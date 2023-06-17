@@ -203,7 +203,7 @@ const WildShapeManager = (function() {
                     {
                         var Character = findObjs({_type:'character', id: CharacterID})[0];
                         var TokenSize = getAttrByName(CharacterID, 'token_size');
-                        ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --force|1 --fx|nova-magic --offset|0,0 --size|" + TokenSize + "," + TokenSize +")}}";
+                        ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --force|1 --fx|nova-magic --offset|0,0 --bar1|@{" + Character.get('name') + "|hp}/@{" + Character.get('name') + "|hp|max} KeepLink --bar2|@{" + Character.get('name') + "|ac} KeepLink  --bar3|@{" + Character.get('name') + "|hp_temp} KeepLink --size|" + TokenSize + "," + TokenSize +")}}";
                         //ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --offset|0,0 --size|" + TokenSize + "," + TokenSize +")}}";
                     }
                     resolve();
