@@ -5,10 +5,10 @@
 
 ## Commands
 ### !Set-As-Wild-Shape
-  This will set the selected token as a character that the player can be wild shape into. This command must be run by the user that is using the wild shape.
+  This will set the selected token as a character that the player can be wild shape into. This command must be run by the player that is using the wild shape.
 
 ### !Unset-As-Wild-Shape
-  This will set the selected token as a character that the player can no longer wild shape into. This will set a character to no longer be a wild shape target.
+  This will set the selected token as a character that the player can no longer wild shape into. This will set a character to no longer be a wild shape target. This command must be run by the player that is using the wild shape.
   
 ### !Set-As-Default-Character <Character ID>
   This will set the selected character as the base character that a wild shape will transform back into. This will be the the Players character that is a druid.
