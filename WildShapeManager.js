@@ -262,68 +262,7 @@ const WildShapeManager = (function() {
             createObj('attribute', {name:'WildShapeBase', current: 0, characterid: data.target});
         }
 
-        AddPlayerCharacter(Character, data.target);
-        return retVal;
-
-        if(data.playerid in AllPlayerWildShapes){
-            if(Character.id in AllPlayerWildShapes[data.playerid].Transformations){
-                if(DEBUG)
-                {
-                    log("Setting Wild Shape: Character ID found: Updating Attributes")
-                }
-                var IsWildShape = getAttrByName(Character.id, 'WildShape');
-                if(IsWildShape == undefined){
-                    createObj('attribute', {name:'WildShape', current: 1, characterid: Character.id});
-                    AllPlayerWildShapes[data.playerid].Transformations[Character.id]['WildShape'] = 1;
-                }
-                else{
-                    setAttrs(Character.id, {WildShape: 1})
-                    AllPlayerWildShapes[data.playerid].Transformations[Character.id]['WildShape'] = 1;
-                }
-            }
-            else{
-                if(DEBUG)
-                {
-                    log("Setting Wild Shape: No Character ID found. Adding Character to transformations")
-                }
-                createObj('attribute', {name:'WildShape', current: 1, characterid: Character.id});
-                var NewCharacterObject = {
-                    name: Character.get('name'),
-                    id: Character.id,
-                    WildShape: 1
-                }
-                AllPlayerWildShapes[data.playerid].Transformations[Character.id] = NewCharacterObject;
-            }
-        }
-        else{
-            if(DEBUG)
-            {
-                log("Setting Wild Shape: No Player ID found. Creating Base")
-            }
-            try{
-                var IsWildShape = getAttrByName(Character.id, 'WildShape');
-                setAttrs(Character.id, {WildShape: 1})
-            }
-            catch{
-                createObj('attribute', {name:'WildShape', current: 1, characterid: Character.id});
-            }
-            var NewCharacterObject = {
-                name: Character.get('name'),
-                id: Character.id,
-                WildShape: 1
-            }
-            AllPlayerWildShapes[data.playerid] = {
-                Transformations: {},
-                Default: undefined
-            };
-            AllPlayerWildShapes[data.playerid].Transformations[Character.id] = NewCharacterObject;
-
-            if(DEBUG)
-            {
-                log("New Wild Shapes: ")
-                log(AllPlayerWildShapes);
-            }
-        }
+        AddPlayerCharacter(Character, data.playerid);
         return retVal;
     }
     function UnsetCharacterAsWildShape (data){
@@ -338,28 +277,12 @@ const WildShapeManager = (function() {
         try{
             var IsWildShape = getAttrByName(Character.id, 'WildShape');
             setAttrs(Character.id, {WildShape: 0});
-            AddPlayerCharacter(Character, data.target);
+            AddPlayerCharacter(Character, data.playerid);
             return retVal;
         }catch{
             retVal.push(`w/ "${data.who}" Character is not a wild shape`);
             return retVal;
         }
-
-        if(data.playerid in AllPlayerWildShapes){
-            if(Character.id in AllPlayerWildShapes[data.playerid].Transformations){
-                var IsWildShape = getAttrByName(Character.id, 'WildShape');
-                if(IsWildShape == undefined){
-                    createObj('attribute', {name:'WildShape', current: 0, characterid: Character.id});
-                    AllPlayerWildShapes[data.playerid].Transformations[Character.id]['WildShape'] = 0;
-                }
-                else{
-                    setAttrs(Character.id, {WildShape: 0})
-                    AllPlayerWildShapes[data.playerid].Transformations[Character.id]['WildShape'] = 0;
-                }
-            }
-        }
-        AddPlayerCharacter(Character, data.target);
-        return retVal;
     }
     function SetCharacterAsDefaultWildShape (data){
         //let Character = findObjs({type: "character", id:data.target})[0];
@@ -414,164 +337,368 @@ const WildShapeManager = (function() {
             }
             // Return to Base Character
             if(data.target in AllPlayerWildShapes[data.playerid].Transformations){
-                //var PlayerCharacter = findObjs({_type:'player', id: data.playerid})[0];
-                //var PlayerName = PlayerCharacter.get('displayname').split(" ")[0];
                 let BaseChatMsg = `/w "${data.who}" &{template:default} {{name=Choose Your base Character }} : `
-                let ChatMsg = ``;
-                let WildShapeCharacter = AllPlayerWildShapes[data.playerid].Default;
-
-                var Character = getObj('character', WildShapeCharacter.id);
-                var TokenSize = getAttrByName(WildShapeCharacter.id, 'token_size');
-                let CharacterName = Character.get('name').replace("\"", "");
-
-                if(DEBUG){
-                    log(PlayerCharacter);
-                    log(PlayerName);
-                    log(AllPlayerWildShapes[data.playerid].Default);
-                    log(AllPlayerWildShapes[data.playerid].Default.id);
-                    log(Character);
-                    log(CharacterName);
-                }
-
-                ChatMsg += `{{["${CharacterName}"](!Spawn --name|"${CharacterName}" --deleteSource|1 --qty|1 --force|1 --offset|0,0`;
-                if(data.fx != ""){
-                    ChatMsg += ` --fx|"${data.fx}"`;
-                }
-                if(data.statusmarkers){
-                    let CurrentToken = getObj("graphic", data.targettoken);
-                    if(DEBUG){
-                        log("Token to be updated: ")
-                        log(CurrentToken);
-                        log(CurrentToken.get('statusmarkers'));
-                    }
-                    if(CurrentToken.get('statusmarkers') != undefined && CurrentToken.get('statusmarkers') != ""){
-                        ChatMsg += ` --tokenProps|statusmarkers&amp;#58;`
-                        let StatusMarkers = CurrentToken.get('statusmarkers').split(",");
-                        for (let i = 0; i < StatusMarkers.length; i++){
-                            let Status = StatusMarkers[i].split("::")[0];
-                            ChatMsg += Status;
-                            if(i < StatusMarkers.length - 1){
-                                ChatMsg += "%comma%";
-                            }
-                        }
-                        //ChatMsg += ` --tokenProps|statusmarkers:"${CurrentToken.get('statusmarkers').replace("::", "%comma%")}"`;
-                    }
-                }
-
-
-                if(WildShapeCharacter["Bar1LinkID"] != undefined && WildShapeCharacter["Bar1LinkID"] != ""){
-                    ChatMsg += ` --bar1|@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"}`
-                    if(WildShapeCharacter["Bar1HasMax"]){
-                        ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"|max}`
-                    }
-                    ChatMsg += ' KeepLink'
-                }
-                if(WildShapeCharacter["Bar2LinkID"] != undefined && WildShapeCharacter["Bar2LinkID"] != ""){
-                    ChatMsg += ` --bar2|@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"}`
-                    if(WildShapeCharacter["Bar2HasMax"]){
-                        ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"|max}`
-                    }
-                    ChatMsg += ' KeepLink'
-                }
-                if(WildShapeCharacter["Bar3LinkID"] != undefined && WildShapeCharacter["Bar3LinkID"] != ""){
-                    ChatMsg += ` --bar3|@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"}`
-                    if(WildShapeCharacter["Bar3HasMax"]){
-                        ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"|max}`
-                    }
-                    ChatMsg += ' KeepLink'
-                }
                 
-                ChatMsg += " --size|" + TokenSize + "," + TokenSize + ")}}";
-
-                let ChatMsg2Send = BaseChatMsg + ChatMsg.replace(/['"]+/g, '');
-                if(DEBUG)
+                let WildShapeCharacter = AllPlayerWildShapes[data.playerid].Default;
+                let Character = getObj('character', WildShapeCharacter.id);
+                PromiseList = [];
+                PromiseList.push(new Promise((resolve, reject) => {
+                    Character.get("defaulttoken", (CharacterDefaultToken) => {
+                        try{         
+                            let TokenSize = getAttrByName(WildShapeCharacter.id, 'token_size');
+                            let CharacterName = Character.get('name').replace("\"", "");
+                            let ChatMsg = ``;               
+                            if(DEBUG)
+                            {
+                                log("Default Token:");
+                                log(CharacterDefaultToken);
+                            }
+                            if(CharacterDefaultToken == undefined)
+                            {
+                                log(`This Character has no default token: "${character}" `);
+                                return;
+                            }
+                            const TokenObj = JSON.parse(CharacterDefaultToken);
+                            if(TokenObj == null)
+                            {
+                                if(DEBUG)
+                                {
+                                    log(`This Token where represents is null: "${CharacterDefaultToken}" `);
+                                }
+                                return;
+                            }
+                            const TokensCharacter = getObj("character", WildShapeCharacter.id);
+                
+                            try{
+                                let Bar_Link1_List = findObjs({type: "attribute", characterid: TokensCharacter.id, id:TokenObj.bar1_link});
+                                if(DEBUG)
+                                {
+                                    log(Bar_Link1_List);
+                                }
+                                if(Bar_Link1_List.length != 0){
+                                    let Bar_Link1 = Bar_Link1_List[0];
+                                    WildShapeCharacter["Bar1LinkName"] = Bar_Link1.get('name');
+                                    WildShapeCharacter["Bar1LinkID"] = Bar_Link1.get('id');
+                                    WildShapeCharacter["Bar1HasMax"] = Bar_Link1.max !== ""; 
+                                }
+                                else{
+                                    WildShapeCharacter["Bar1LinkName"] = "";
+                                    WildShapeCharacter["Bar1LinkID"] = "";
+                                    WildShapeCharacter["Bar1HasMax"] = false; 
+                                }
+                            }
+                            catch{
+                                WildShapeCharacter["Bar1LinkName"] = "";
+                                WildShapeCharacter["Bar1LinkID"] = "";
+                                WildShapeCharacter["Bar1HasMax"] = false; 
+                            }
+                            try{
+                                let Bar_Link2_List = findObjs({type: "attribute", characterid: TokensCharacter.id, id:TokenObj.bar2_link});
+                                if(DEBUG)
+                                {
+                                    log(Bar_Link2_List);
+                                }
+                                if(Bar_Link2_List.length != 0){
+                                    let Bar_Link2 = Bar_Link2_List[0];
+                                    WildShapeCharacter["Bar2LinkName"] = Bar_Link2.get('name');
+                                    WildShapeCharacter["Bar2LinkID"] = Bar_Link2.get('id');
+                                    WildShapeCharacter["Bar2HasMax"] = Bar_Link2.max !== ""; 
+                                }
+                                else{
+                                    WildShapeCharacter["Bar2LinkName"] = "";
+                                    WildShapeCharacter["Bar2LinkID"] = "";
+                                    WildShapeCharacter["Bar2HasMax"] = false; 
+                                }
+                            }
+                            catch{
+                                WildShapeCharacter["Bar2LinkName"] = "";
+                                WildShapeCharacter["Bar2LinkID"] = "";
+                                WildShapeCharacter["Bar2HasMax"] = false; 
+                            }
+                            try{
+                                let Bar_Link3_List = findObjs({type: "attribute", characterid: TokensCharacter.id, id:TokenObj.bar3_link});
+                                if(DEBUG)
+                                {
+                                    log(Bar_Link3_List);
+                                }
+                                if(Bar_Link3_List.length != 0){
+                                    let Bar_Link3 = Bar_Link3_List[0];
+                                    WildShapeCharacter["Bar3LinkName"] = Bar_Link3.get('name');
+                                    WildShapeCharacter["Bar3LinkID"] = Bar_Link3.get('id');
+                                    WildShapeCharacter["Bar3HasMax"] = Bar_Link3.max !== "";
+                                }
+                                else{
+                                    WildShapeCharacter["Bar3LinkName"] = "";
+                                    WildShapeCharacter["Bar3LinkID"] = "";
+                                    WildShapeCharacter["Bar3HasMax"] = false;
+                                }
+                            }
+                            catch{
+                                WildShapeCharacter["Bar3LinkName"] = "";
+                                WildShapeCharacter["Bar3LinkID"] = "";
+                                WildShapeCharacter["Bar3HasMax"] = false;
+                            }
+                            
+                            ChatMsg += `{{["${CharacterName}"](!Spawn --name|"${CharacterName}" --deleteSource|1 --qty|1 --force|1 --offset|-.5,-.5`;
+                            if(data.fx != ""){
+                                ChatMsg += ` --fx|"${data.fx}"`;
+                            }
+                            if(data.statusmarkers){
+                                let CurrentToken = getObj("graphic", data.targettoken);
+                                if(DEBUG){
+                                    log("Token to be updated: ")
+                                    log(CurrentToken);
+                                    log(CurrentToken.get('statusmarkers'));
+                                }
+                                if(CurrentToken.get('statusmarkers') != undefined && CurrentToken.get('statusmarkers') != ""){
+                                    ChatMsg += ` --tokenProps|statusmarkers&amp;#58;`
+                                    let StatusMarkers = CurrentToken.get('statusmarkers').split(",");
+                                    for (let i = 0; i < StatusMarkers.length; i++){
+                                        let Status = StatusMarkers[i].split("::")[0];
+                                        ChatMsg += Status;
+                                        if(i < StatusMarkers.length - 1){
+                                            ChatMsg += "%comma%";
+                                        }
+                                    }
+                                    //ChatMsg += ` --tokenProps|statusmarkers:"${CurrentToken.get('statusmarkers').replace("::", "%comma%")}"`;
+                                }
+                            }
+    
+    
+                            if(WildShapeCharacter["Bar1LinkID"] != undefined && WildShapeCharacter["Bar1LinkID"] != ""){
+                                ChatMsg += ` --bar1|@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"}`
+                                if(WildShapeCharacter["Bar1HasMax"]){
+                                    ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"|max}`
+                                }
+                                ChatMsg += ' KeepLink'
+                            }
+                            if(WildShapeCharacter["Bar2LinkID"] != undefined && WildShapeCharacter["Bar2LinkID"] != ""){
+                                ChatMsg += ` --bar2|@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"}`
+                                if(WildShapeCharacter["Bar2HasMax"]){
+                                    ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"|max}`
+                                }
+                                ChatMsg += ' KeepLink'
+                            }
+                            if(WildShapeCharacter["Bar3LinkID"] != undefined && WildShapeCharacter["Bar3LinkID"] != ""){
+                                ChatMsg += ` --bar3|@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"}`
+                                if(WildShapeCharacter["Bar3HasMax"]){
+                                    ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"|max}`
+                                }
+                                ChatMsg += ' KeepLink'
+                            }
+                            
+                            ChatMsg += " --size|" + TokenSize + "," + TokenSize + ")}}";
+                            resolve(ChatMsg.replace(/['"]+/g, ''));
+                        }
+                        catch(error){
+                            resolve("");
+                        }
+                    });
+                }));
+                Promise.all(PromiseList)
+                .then((ChatMessages)=>
                 {
-                    log(ChatMsg2Send);
-                }
-                sendChat("Wild Shape Manager", ChatMsg2Send);
+                    let ChatMsg2Send = BaseChatMsg;
+                    if(DEBUG)
+                    {
+                        log(ChatMessages);
+                    }
+                    for(let i = 0; i < ChatMessages.length; i++)
+                    {
+                        ChatMsg2Send += ChatMessages[i];
+                    }
+                    if(DEBUG)
+                    {
+                        log(ChatMsg2Send);
+                    }
+                    sendChat("Wild Shape Manager", ChatMsg2Send);
+                });
             }
             // Transform into Wild Shape
             else if(AllPlayerWildShapes[data.playerid].Default.id == data.target){
-                let PlayerCharacter = findObjs({_type:'player', id: data.playerid})[0];
-                let PlayerName = PlayerCharacter.get('displayname').split(" ")[0];
 
                 let BaseChatMsg = `/w "${data.who}" &{template:default} {{name=Choose a wild shape }} : `
-            
-                let ChatMsg = ``;
+                let PromiseList = [];
                 for (const [key, value] of Object.entries(AllPlayerWildShapes[data.playerid].Transformations))
                 //for(let i = 0; i < AllPlayerWildShapes[data.playerid].Transformations.keys.length; i++)
                 {
+                    let ChatMsg = ``;
                     let WildShapeCharacter = value;
-                    var Character = getObj('character', WildShapeCharacter.id);
-                    var TokenSize = getAttrByName(WildShapeCharacter.id, 'token_size');
-                    let CharacterName = Character.get('name').replace("\"", "");
-
-                    if(DEBUG){
-                        log(PlayerCharacter);
-                        log(PlayerName);
-                        log(value);
-                        log(key);
-                        log(Character);
-                        log(CharacterName);
-                    }
-
-
-                    ChatMsg += `{{["${CharacterName}"](!Spawn --name|"${CharacterName}" --deleteSource|1 --qty|1 --force|1 --offset|-.5,-.5`;
-                    if(data.fx != ""){
-                        ChatMsg += ` --fx|"${data.fx}"`;
-                    }
-                    if(data.statusmarkers){
-                        let CurrentToken = getObj("graphic", data.targettoken);
-                        if(DEBUG){
-                            log("Token to be updated: ")
-                            log(CurrentToken);
-                            log(CurrentToken.get('statusmarkers'));
-                        }
-                        if(CurrentToken.get('statusmarkers') != undefined && CurrentToken.get('statusmarkers') != ""){
-                            ChatMsg += ` --tokenProps|statusmarkers&amp;#58;`
-                            let StatusMarkers = CurrentToken.get('statusmarkers').split(",");
-                            for (let i = 0; i < StatusMarkers.length; i++){
-                                let Status = StatusMarkers[i].split("::")[0];
-                                ChatMsg += Status;
-                                if(i < StatusMarkers.length - 1){
-                                    ChatMsg += "%comma%";
+                    var Character = getObj('character', WildShapeCharacter.id); 
+                    PromiseList.push(new Promise((resolve, reject) => {
+                        Character.get("defaulttoken", (CharacterDefaultToken) => {
+                            try{                   
+                                var TokenSize = getAttrByName(WildShapeCharacter.id, 'token_size');
+                                let CharacterName = Character.get('name').replace("\"", "");
+                                if(DEBUG)
+                                {
+                                    log("Default Token:");
+                                    log(CharacterDefaultToken);
                                 }
-                            }
-                            //ChatMsg += ` --tokenProps|statusmarkers:"${CurrentToken.get('statusmarkers').replace("::", "%comma%")}"`;
-                        }
-                    }
-
-
-                    if(WildShapeCharacter["Bar1LinkID"] != undefined && WildShapeCharacter["Bar1LinkID"] != ""){
-                        ChatMsg += ` --bar1|@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"}`
-                        if(WildShapeCharacter["Bar1HasMax"]){
-                            ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"|max}`
-                        }
-                        ChatMsg += ' KeepLink'
-                    }
-                    if(WildShapeCharacter["Bar2LinkID"] != undefined && WildShapeCharacter["Bar2LinkID"] != ""){
-                        ChatMsg += ` --bar2|@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"}`
-                        if(WildShapeCharacter["Bar2HasMax"]){
-                            ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"|max}`
-                        }
-                        ChatMsg += ' KeepLink'
-                    }
-                    if(WildShapeCharacter["Bar3LinkID"] != undefined && WildShapeCharacter["Bar3LinkID"] != ""){
-                        ChatMsg += ` --bar3|@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"}`
-                        if(WildShapeCharacter["Bar3HasMax"]){
-                            ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"|max}`
-                        }
-                        ChatMsg += ' KeepLink'
-                    }
+                                if(CharacterDefaultToken == undefined)
+                                {
+                                    log(`This Character has no default token: "${Character}" `);
+                                    return;
+                                }
+                                const TokenObj = JSON.parse(CharacterDefaultToken);
+                                if(TokenObj == null)
+                                {
+                                    if(DEBUG)
+                                    {
+                                        log(`This Token where represents is null: "${CharacterDefaultToken}" `);
+                                    }
+                                    return;
+                                }
+                                const TokensCharacter = getObj("character", WildShapeCharacter.id);
                     
-                    ChatMsg += " --size|" + TokenSize + "," + TokenSize + ")}}";
+                                try{
+                                    let Bar_Link1_List = findObjs({type: "attribute", characterid: TokensCharacter.id, id:TokenObj.bar1_link});
+                                    if(DEBUG)
+                                    {
+                                        log(Bar_Link1_List);
+                                    }
+                                    if(Bar_Link1_List.length != 0){
+                                        let Bar_Link1 = Bar_Link1_List[0];
+                                        WildShapeCharacter["Bar1LinkName"] = Bar_Link1.get('name');
+                                        WildShapeCharacter["Bar1LinkID"] = Bar_Link1.get('id');
+                                        WildShapeCharacter["Bar1HasMax"] = Bar_Link1.max !== ""; 
+                                    }
+                                    else{
+                                        WildShapeCharacter["Bar1LinkName"] = "";
+                                        WildShapeCharacter["Bar1LinkID"] = "";
+                                        WildShapeCharacter["Bar1HasMax"] = false; 
+                                    }
+                                }
+                                catch{
+                                    WildShapeCharacter["Bar1LinkName"] = "";
+                                    WildShapeCharacter["Bar1LinkID"] = "";
+                                    WildShapeCharacter["Bar1HasMax"] = false; 
+                                }
+                                try{
+                                    let Bar_Link2_List = findObjs({type: "attribute", characterid: TokensCharacter.id, id:TokenObj.bar2_link});
+                                    if(DEBUG)
+                                    {
+                                        log(Bar_Link2_List);
+                                    }
+                                    if(Bar_Link2_List.length != 0){
+                                        let Bar_Link2 = Bar_Link2_List[0];
+                                        WildShapeCharacter["Bar2LinkName"] = Bar_Link2.get('name');
+                                        WildShapeCharacter["Bar2LinkID"] = Bar_Link2.get('id');
+                                        WildShapeCharacter["Bar2HasMax"] = Bar_Link2.max !== ""; 
+                                    }
+                                    else{
+                                        WildShapeCharacter["Bar2LinkName"] = "";
+                                        WildShapeCharacter["Bar2LinkID"] = "";
+                                        WildShapeCharacter["Bar2HasMax"] = false; 
+                                    }
+                                }
+                                catch{
+                                    WildShapeCharacter["Bar2LinkName"] = "";
+                                    WildShapeCharacter["Bar2LinkID"] = "";
+                                    WildShapeCharacter["Bar2HasMax"] = false; 
+                                }
+                                try{
+                                    let Bar_Link3_List = findObjs({type: "attribute", characterid: TokensCharacter.id, id:TokenObj.bar3_link});
+                                    if(DEBUG)
+                                    {
+                                        log(Bar_Link3_List);
+                                    }
+                                    if(Bar_Link3_List.length != 0){
+                                        let Bar_Link3 = Bar_Link3_List[0];
+                                        WildShapeCharacter["Bar3LinkName"] = Bar_Link3.get('name');
+                                        WildShapeCharacter["Bar3LinkID"] = Bar_Link3.get('id');
+                                        WildShapeCharacter["Bar3HasMax"] = Bar_Link3.max !== "";
+                                    }
+                                    else{
+                                        WildShapeCharacter["Bar3LinkName"] = "";
+                                        WildShapeCharacter["Bar3LinkID"] = "";
+                                        WildShapeCharacter["Bar3HasMax"] = false;
+                                    }
+                                }
+                                catch{
+                                    WildShapeCharacter["Bar3LinkName"] = "";
+                                    WildShapeCharacter["Bar3LinkID"] = "";
+                                    WildShapeCharacter["Bar3HasMax"] = false;
+                                }
+                                
+                                ChatMsg += `{{["${CharacterName}"](!Spawn --name|"${CharacterName}" --deleteSource|1 --qty|1 --force|1 --offset|-.5,-.5`;
+                                if(data.fx != ""){
+                                    ChatMsg += ` --fx|"${data.fx}"`;
+                                }
+                                if(data.statusmarkers){
+                                    let CurrentToken = getObj("graphic", data.targettoken);
+                                    if(DEBUG){
+                                        log("Token to be updated: ")
+                                        log(CurrentToken);
+                                        log(CurrentToken.get('statusmarkers'));
+                                    }
+                                    if(CurrentToken.get('statusmarkers') != undefined && CurrentToken.get('statusmarkers') != ""){
+                                        ChatMsg += ` --tokenProps|statusmarkers&amp;#58;`
+                                        let StatusMarkers = CurrentToken.get('statusmarkers').split(",");
+                                        for (let i = 0; i < StatusMarkers.length; i++){
+                                            let Status = StatusMarkers[i].split("::")[0];
+                                            ChatMsg += Status;
+                                            if(i < StatusMarkers.length - 1){
+                                                ChatMsg += "%comma%";
+                                            }
+                                        }
+                                        //ChatMsg += ` --tokenProps|statusmarkers:"${CurrentToken.get('statusmarkers').replace("::", "%comma%")}"`;
+                                    }
+                                }
+        
+        
+                                if(WildShapeCharacter["Bar1LinkID"] != undefined && WildShapeCharacter["Bar1LinkID"] != ""){
+                                    ChatMsg += ` --bar1|@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"}`
+                                    if(WildShapeCharacter["Bar1HasMax"]){
+                                        ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar1LinkName"]}"|max}`
+                                    }
+                                    ChatMsg += ' KeepLink'
+                                }
+                                if(WildShapeCharacter["Bar2LinkID"] != undefined && WildShapeCharacter["Bar2LinkID"] != ""){
+                                    ChatMsg += ` --bar2|@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"}`
+                                    if(WildShapeCharacter["Bar2HasMax"]){
+                                        ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar2LinkName"]}"|max}`
+                                    }
+                                    ChatMsg += ' KeepLink'
+                                }
+                                if(WildShapeCharacter["Bar3LinkID"] != undefined && WildShapeCharacter["Bar3LinkID"] != ""){
+                                    ChatMsg += ` --bar3|@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"}`
+                                    if(WildShapeCharacter["Bar3HasMax"]){
+                                        ChatMsg += `/@{"${CharacterName}"|"${WildShapeCharacter["Bar3LinkName"]}"|max}`
+                                    }
+                                    ChatMsg += ' KeepLink'
+                                }
+                                
+                                ChatMsg += " --size|" + TokenSize + "," + TokenSize + ")}}";
+                                resolve(ChatMsg.replace(/['"]+/g, ''));
+                            }
+                            catch(error){
+                                resolve("");
+                            }
+                        });
+                    }));
+                    
                 }
-                let ChatMsg2Send = BaseChatMsg + ChatMsg.replace(/['"]+/g, '');
-                if(DEBUG)
+        
+                Promise.all(PromiseList)
+                .then((ChatMessages)=>
                 {
-                    log(ChatMsg2Send);
-                }
-                sendChat("Wild Shape Manager", ChatMsg2Send);
+                    if(DEBUG)
+                    {
+                        log(ChatMessages);
+                    }
+                    let ChatMsg2Send = BaseChatMsg;
+                    for(let i = 0; i < ChatMessages.length; i++)
+                    {
+                        ChatMsg2Send += ChatMessages[i];
+                    }
+                    if(DEBUG)
+                    {
+                        log(ChatMsg2Send);
+                    }
+                    sendChat("Wild Shape Manager", ChatMsg2Send);
+                });
+                
             }
             else{
                 retVal.push(`w/ "${data.who}" selected/targetted character is not a valid Wild Shape or Base Character`);
@@ -580,55 +707,7 @@ const WildShapeManager = (function() {
         }
 
         return retVal;
-
-        
-        
-        if(AllPlayerWildShapes[data.playerid][SelectedCharacter.id].WildShape == 1)
-        {
-            var PlayerCharacter = findObjs({_type:'player', id: data.playerid})[0];
-            var PlayerName = PlayerCharacter.get('displayname').split(" ")[0];
-            var ChatMsg = "/w " + PlayerName + " &{template:default} {{name=Click }} : "
-            let WaitToSend = new Promise((resolve, reject) => {Object.keys(AllPlayerWildShapes[data.playerid]).forEach(CharacterID =>{
-                    if(AllPlayerWildShapes[data.playerid][CharacterID].IsDefaultCharacter == 1)
-                    {
-                        var Character = findObjs({_type:'character', id: CharacterID})[0];
-                        var TokenSize = getAttrByName(CharacterID, 'token_size');
-                        ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --force|1 --fx|nova-magic --offset|0,0 --bar1|@{" + Character.get('name') + "|hp}/@{" + Character.get('name') + "|hp|max} KeepLink --bar2|@{" + Character.get('name') + "|ac} KeepLink  --bar3|@{" + Character.get('name') + "|hp_temp} KeepLink --size|" + TokenSize + "," + TokenSize +")}}";
-                        //ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --offset|0,0 --size|" + TokenSize + "," + TokenSize +")}}";
-                    }
-                    resolve();
-                });
-            });
-            WaitToSend.then(() => {
-                //var PlayerCharacter = findObjs({_type:'player', id: data.playerid})[0];
-                //var PlayerName = PlayerCharacter.get('displayname').split(" ")[0];
-                //log("PlayerName: " + PlayerName + " Command = {{" + ChatMsg + "}}")
-                sendChat("Wild Shape Manager", ChatMsg);
-            });
-        }
-        else{
-            var PlayerCharacter = findObjs({_type:'player', id: data.playerid})[0];
-            var PlayerName = PlayerCharacter.get('displayname').split(" ")[0];
-            var ChatMsg = "/w " + PlayerName + " &{template:default} {{name=Choose a wild shape }} : "
-            let WaitToSend = new Promise((resolve, reject) => {Object.keys(AllPlayerWildShapes[data.playerid]).forEach(CharacterID =>{
-                    if(AllPlayerWildShapes[data.playerid][CharacterID].WildShape == 1)
-                    {
-                        var TokenSize = getAttrByName(CharacterID, 'token_size');
-                        var Character = findObjs({_type:'character', id: CharacterID})[0];
-                        //ChatMsg += "{{[" + Character.get('name') + "](!Wild-Shape-Token " + PlayerID + " " + CurrentToken.id + " " + CharacterID + ")}}";
-                        //ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --offset|.5,.5 --fx|nova-magic --size|" + TokenSize + "," + TokenSize +")}}";
-                        ChatMsg += "{{[" + Character.get('name') + "](!Spawn --name|" + Character.get('name') + " --deleteSource|1 --qty|1 --offset|-.5,-.5 --fx|nova-magic --size|" + TokenSize + "," + TokenSize +")}}";
-                    }
-                    resolve();
-                });
-            });
-            WaitToSend.then(() => {
-                log(ChatMsg);
-                sendChat("Wild Shape Manager", ChatMsg);
-            });
-        }
     }
-
 
 
     function processInlinerolls(msg) {
@@ -879,11 +958,9 @@ const WildShapeManager = (function() {
         }
     }
 
-
     const registerEventHandlers = function() {
         on('chat:message', handleInput);
     };
-
 
     function Preload (SpecialPlayerID){
         AddPlayers(SpecialPlayerID);
@@ -913,4 +990,3 @@ const WildShapeManager = (function() {
     });
 
 }());
-
